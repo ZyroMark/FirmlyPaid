@@ -39,6 +39,30 @@ public static class SecurityRegistration
         return builder;
     }
 
+    /// <summary>The environment setting holding the bank callback secret.</summary>
+    public const string BankCallbackSecretSetting = "FIRMLYPAID_BANK_CALLBACK_SECRET";
+
+    /// <summary>
+    /// Registers the checker for signed bank callbacks. A missing secret stops the service
+    /// at startup: accepting unsigned confirmations would let anyone attach someone else's
+    /// bank account to their own profile.
+    /// </summary>
+    public static WebApplicationBuilder AddFirmlyPaidBankCallbackSignature(this WebApplicationBuilder builder)
+    {
+        var secret = builder.Configuration[BankCallbackSecretSetting];
+
+        if (string.IsNullOrWhiteSpace(secret))
+        {
+            throw new InvalidOperationException(
+                $"{BankCallbackSecretSetting} is not set. It must be at least 32 characters and come from " +
+                "the environment or user-secrets, never from source control (rule 10.15).");
+        }
+
+        builder.Services.AddSingleton(new BankCallbackSignature(secret));
+
+        return builder;
+    }
+
     /// <summary>Registers Argon2id PIN hashing (rule 10.6).</summary>
     public static WebApplicationBuilder AddFirmlyPaidPinHashing(this WebApplicationBuilder builder)
     {

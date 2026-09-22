@@ -6,7 +6,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\FirmlyPaid.Shared\FirmlyPaid.Shared.csproj" />
+    <ProjectReference Include="..\FirmlyPaid.Data.Core\FirmlyPaid.Data.Core.csproj" />
+    <ProjectReference Include="..\FirmlyPaid.Simulators\FirmlyPaid.Simulators.csproj" />
   </ItemGroup>
 
 </Project>
