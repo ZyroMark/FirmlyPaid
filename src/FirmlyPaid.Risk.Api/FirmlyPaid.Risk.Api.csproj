@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <RootNamespace>FirmlyPaid.Risk.Api</RootNamespace>
+    <UserSecretsId>firmlypaid-risk-api</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\FirmlyPaid.Shared\FirmlyPaid.Shared.csproj" />
+  </ItemGroup>
+
+</Project>

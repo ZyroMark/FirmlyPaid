@@ -1,0 +1,30 @@
+# Build output
+bin/
+obj/
+[Dd]ebug/
+[Rr]elease/
+artifacts/
+*.user
+*.suo
+.vs/
+.vscode/
+.idea/
+
+# Node (customer portal)
+node_modules/
+dist/
+*.tsbuildinfo
+
+# Secrets and local keys - never committed (rule 10.15)
+.env
+*.pfx
+*.p12
+/secrets/
+# Anchored to the root: src/FirmlyPaid.Simulators/Keys holds source code, not keys.
+/keys/
+*.devkey
+
+# Test and tool output
+TestResults/
+coverage/
+*.trx

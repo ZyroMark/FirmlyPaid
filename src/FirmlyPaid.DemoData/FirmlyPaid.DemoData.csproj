@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>FirmlyPaid.DemoData</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\FirmlyPaid.Shared\FirmlyPaid.Shared.csproj" />
+  </ItemGroup>
+
+</Project>

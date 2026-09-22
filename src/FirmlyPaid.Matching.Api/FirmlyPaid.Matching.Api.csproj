@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <RootNamespace>FirmlyPaid.Matching.Api</RootNamespace>
+    <UserSecretsId>firmlypaid-matching-api</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\FirmlyPaid.Shared\FirmlyPaid.Shared.csproj" />
+  </ItemGroup>
+
+</Project>

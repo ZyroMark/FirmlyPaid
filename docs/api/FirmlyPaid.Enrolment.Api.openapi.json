@@ -1,0 +1,13 @@
+{
+  "openapi": "3.0.4",
+  "info": {
+    "title": "FirmlyPaid.Enrolment.Api",
+    "description": "Agent-assisted enrolment: Home Affairs verification, POPIA consent, finger vein capture and PIN.",
+    "contact": {
+      "name": "ZYROMARK PTY LTD"
+    },
+    "version": "v1"
+  },
+  "paths": { },
+  "components": { }
+}

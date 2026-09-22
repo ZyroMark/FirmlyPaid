@@ -1,0 +1,13 @@
+{
+  "openapi": "3.0.4",
+  "info": {
+    "title": "FirmlyPaid.Matching.Api",
+    "description": "Biometric vault and matching. Internal only: the one service allowed to read FirmlyPaidVault.",
+    "contact": {
+      "name": "ZYROMARK PTY LTD"
+    },
+    "version": "v1"
+  },
+  "paths": { },
+  "components": { }
+}

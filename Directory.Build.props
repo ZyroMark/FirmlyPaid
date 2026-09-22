@@ -1,0 +1,19 @@
+<Project>
+
+  <!-- Settings every FirmlyPaid project shares. Keeps the individual .csproj files short. -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <InvariantGlobalization>false</InvariantGlobalization>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <Company>ZYROMARK PTY LTD</Company>
+    <Product>FirmlyPaid</Product>
+    <Authors>ZYROMARK PTY LTD</Authors>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <!-- Money is always decimal; never let an implicit double creep in unnoticed. -->
+    <WarningsAsErrors>CS0078;CS0464;CS0652</WarningsAsErrors>
+  </PropertyGroup>
+
+</Project>

@@ -1,0 +1,13 @@
+{
+  "openapi": "3.0.4",
+  "info": {
+    "title": "FirmlyPaid.TillIntegration.Api",
+    "description": "Till integration for large retailers. Never receives a customer's banks, ID digits or PIN.",
+    "contact": {
+      "name": "ZYROMARK PTY LTD"
+    },
+    "version": "v1"
+  },
+  "paths": { },
+  "components": { }
+}

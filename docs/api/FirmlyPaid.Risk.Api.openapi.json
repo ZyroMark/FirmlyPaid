@@ -1,0 +1,13 @@
+{
+  "openapi": "3.0.4",
+  "info": {
+    "title": "FirmlyPaid.Risk.Api",
+    "description": "Internal risk scoring for a payment: allow, require PIN or block.",
+    "contact": {
+      "name": "ZYROMARK PTY LTD"
+    },
+    "version": "v1"
+  },
+  "paths": { },
+  "components": { }
+}

@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <RootNamespace>FirmlyPaid.AccountLink.Api</RootNamespace>
+    <UserSecretsId>firmlypaid-accountlink-api</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\FirmlyPaid.Shared\FirmlyPaid.Shared.csproj" />
+  </ItemGroup>
+
+</Project>

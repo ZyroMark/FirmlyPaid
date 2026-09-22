@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>FirmlyPaid.DbTool</RootNamespace>
+    <AssemblyName>FirmlyPaid.DbTool</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\FirmlyPaid.Data.Core\FirmlyPaid.Data.Core.csproj" />
+    <ProjectReference Include="..\FirmlyPaid.Data.Vault\FirmlyPaid.Data.Vault.csproj" />
+    <ProjectReference Include="..\FirmlyPaid.Shared\FirmlyPaid.Shared.csproj" />
+  </ItemGroup>
+
+</Project>

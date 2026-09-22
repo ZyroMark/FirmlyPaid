@@ -1,0 +1,10 @@
+**/bin/
+**/obj/
+**/node_modules/
+**/.vs/
+**/.vscode/
+**/.git/
+**/.env
+**/*.user
+docs/
+tests/

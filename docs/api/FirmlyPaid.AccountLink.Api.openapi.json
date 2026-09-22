@@ -1,0 +1,13 @@
+{
+  "openapi": "3.0.4",
+  "info": {
+    "title": "FirmlyPaid.AccountLink.Api",
+    "description": "Links customer bank accounts, confirmed by the customer in their own banking app.",
+    "contact": {
+      "name": "ZYROMARK PTY LTD"
+    },
+    "version": "v1"
+  },
+  "paths": { },
+  "components": { }
+}

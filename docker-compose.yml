@@ -1,0 +1,130 @@
+# FirmlyPaid local stack. One command brings up SQL Server, RabbitMQ and every service.
+# Hardware, the sponsor bank and Home Affairs are simulated in-process (see part 7).
+#
+#   copy .env.example to .env, set a password, then:  docker compose up -d --build
+
+name: firmlypaid
+
+x-service-base: &service-base
+  restart: unless-stopped
+  environment: &service-env
+    ASPNETCORE_ENVIRONMENT: Development
+    ASPNETCORE_HTTP_PORTS: 8080
+    # FirmlyPaidCore holds people, accounts and payments. The vault is deliberately absent here.
+    ConnectionStrings__Core: "Server=sqlserver,1433;Database=FirmlyPaidCore;User Id=sa;Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=True;Encrypt=False"
+    ConnectionStrings__RabbitMq: "amqp://${RABBITMQ_USER}:${RABBITMQ_PASSWORD}@rabbitmq:5672"
+  depends_on:
+    sqlserver:
+      condition: service_healthy
+    rabbitmq:
+      condition: service_healthy
+
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: firmlypaid-sqlserver
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD}
+      MSSQL_PID: Developer
+    ports:
+      # 14330 on the host, because a locally installed SQL Server usually owns 1433.
+      # Inside the compose network the services still reach it on sqlserver:1433.
+      - "14330:1433"
+    volumes:
+      - sqlserver-data:/var/opt/mssql
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$$MSSQL_SA_PASSWORD\" -C -Q 'SELECT 1' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+
+  rabbitmq:
+    image: rabbitmq:4-management
+    container_name: firmlypaid-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+
+  gateway:
+    <<: *service-base
+    container_name: firmlypaid-gateway
+    build:
+      context: .
+      dockerfile: src/FirmlyPaid.Gateway/Dockerfile
+    ports:
+      - "5100:8080"
+
+  enrolment-api:
+    <<: *service-base
+    container_name: firmlypaid-enrolment-api
+    build:
+      context: .
+      dockerfile: src/FirmlyPaid.Enrolment.Api/Dockerfile
+    ports:
+      - "5101:8080"
+
+  matching-api:
+    <<: *service-base
+    container_name: firmlypaid-matching-api
+    build:
+      context: .
+      dockerfile: src/FirmlyPaid.Matching.Api/Dockerfile
+    environment:
+      <<: *service-env
+      # Rule 10.2: the Matching service is the only one given the vault connection string.
+      ConnectionStrings__Vault: "Server=sqlserver,1433;Database=FirmlyPaidVault;User Id=sa;Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=True;Encrypt=False"
+    ports:
+      - "5102:8080"
+
+  accountlink-api:
+    <<: *service-base
+    container_name: firmlypaid-accountlink-api
+    build:
+      context: .
+      dockerfile: src/FirmlyPaid.AccountLink.Api/Dockerfile
+    ports:
+      - "5103:8080"
+
+  payments-api:
+    <<: *service-base
+    container_name: firmlypaid-payments-api
+    build:
+      context: .
+      dockerfile: src/FirmlyPaid.Payments.Api/Dockerfile
+    ports:
+      - "5104:8080"
+
+  risk-api:
+    <<: *service-base
+    container_name: firmlypaid-risk-api
+    build:
+      context: .
+      dockerfile: src/FirmlyPaid.Risk.Api/Dockerfile
+    ports:
+      - "5105:8080"
+
+  till-integration-api:
+    <<: *service-base
+    container_name: firmlypaid-till-integration-api
+    build:
+      context: .
+      dockerfile: src/FirmlyPaid.TillIntegration.Api/Dockerfile
+    ports:
+      - "5106:8080"
+
+volumes:
+  sqlserver-data:
+  rabbitmq-data:
