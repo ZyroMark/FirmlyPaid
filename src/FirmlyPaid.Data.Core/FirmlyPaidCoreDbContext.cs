@@ -231,6 +231,7 @@ public class FirmlyPaidCoreDbContext(DbContextOptions<FirmlyPaidCoreDbContext> o
             entity.Property(e => e.IdNumberHash).HasMaxLength(128);
             entity.Property(e => e.CellphoneNumber).HasMaxLength(20);
             entity.Property(e => e.HomeAffairsReference).HasMaxLength(100);
+            entity.Property(e => e.ConsentTextVersion).HasMaxLength(50);
 
             entity.HasIndex(e => e.IdNumberHash);
             entity.HasIndex(e => e.TemplateOwnerId);

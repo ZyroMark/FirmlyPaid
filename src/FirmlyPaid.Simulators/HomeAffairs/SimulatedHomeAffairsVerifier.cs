@@ -60,6 +60,11 @@ public sealed class SimulatedHomeAffairsVerifier(
         var digest = System.Security.Cryptography.SHA256.HashData(
             System.Text.Encoding.UTF8.GetBytes($"home-affairs-simulator:{idNumber}"));
 
-        return $"HA-SIM-{Convert.ToHexStringLower(digest.AsSpan(0, 6))}";
+        var hex = Convert.ToHexStringLower(digest.AsSpan(0, 6));
+
+        // Grouped in fours so the reference can never contain a long run of digits. An
+        // unbroken run would look like an account number to the audit writer's check
+        // (rule 10.5) and would stop a perfectly good enrolment from being recorded.
+        return $"HA-SIM-{hex[..4]}-{hex[4..8]}-{hex[8..]}";
     }
 }

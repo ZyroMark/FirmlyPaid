@@ -1,25 +1,22 @@
 using System.Net;
 using System.Text.Json;
 using FluentAssertions;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit;
 
 namespace FirmlyPaid.Matching.Api.Tests;
 
 /// <summary>
-/// Step 1 checkpoint: the service starts with its configuration validated and answers
-/// /health with its own name.
+/// The service starts with its configuration validated, reaches its own database and
+/// answers /health with its own name. From step 4 the vault connection is part of that
+/// answer, so a service that cannot open the vault reports itself unhealthy.
 /// </summary>
-public class HealthEndpointTests : IClassFixture<WebApplicationFactory<FirmlyPaid.Matching.Api.ApiMarker>>
+[Collection(nameof(MatchingCollection))]
+public class HealthEndpointTests(MatchingTestHost host)
 {
-    private readonly WebApplicationFactory<FirmlyPaid.Matching.Api.ApiMarker> _factory;
-
-    public HealthEndpointTests(WebApplicationFactory<FirmlyPaid.Matching.Api.ApiMarker> factory) => _factory = factory;
-
     [Fact]
     public async Task Health_ReportsHealthyAndNamesTheService()
     {
-        var response = await _factory.CreateClient().GetAsync("/health");
+        var response = await host.Client.GetAsync("/health");
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
@@ -29,9 +26,22 @@ public class HealthEndpointTests : IClassFixture<WebApplicationFactory<FirmlyPai
     }
 
     [Fact]
+    public async Task Health_IncludesTheVaultDatabaseCheck()
+    {
+        var response = await host.Client.GetAsync("/health");
+
+        using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+
+        document.RootElement.GetProperty("checks")
+            .EnumerateArray()
+            .Select(check => check.GetProperty("name").GetString())
+            .Should().Contain("vault-database");
+    }
+
+    [Fact]
     public async Task Liveness_AnswersWithoutRunningDependencyChecks()
     {
-        var response = await _factory.CreateClient().GetAsync("/health/live");
+        var response = await host.Client.GetAsync("/health/live");
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
@@ -39,7 +49,7 @@ public class HealthEndpointTests : IClassFixture<WebApplicationFactory<FirmlyPai
     [Fact]
     public async Task OpenApiDocument_IsPublished()
     {
-        var response = await _factory.CreateClient().GetAsync("/swagger/v1/swagger.json");
+        var response = await host.Client.GetAsync("/swagger/v1/swagger.json");
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         (await response.Content.ReadAsStringAsync()).Should().Contain("FirmlyPaid.Matching.Api");

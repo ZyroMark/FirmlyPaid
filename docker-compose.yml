@@ -13,6 +13,16 @@ x-service-base: &service-base
     # FirmlyPaidCore holds people, accounts and payments. The vault is deliberately absent here.
     ConnectionStrings__Core: "Server=sqlserver,1433;Database=FirmlyPaidCore;User Id=sa;Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=True;Encrypt=False"
     ConnectionStrings__RabbitMq: "amqp://${RABBITMQ_USER}:${RABBITMQ_PASSWORD}@rabbitmq:5672"
+    # Rule 10.4: the pepper that turns an ID number into the hash we store. It comes from
+    # .env, never from source control, and changing it makes every stored hash unreadable.
+    FIRMLYPAID_ID_PEPPER: ${FIRMLYPAID_ID_PEPPER}
+    # The development key that protects templates and PINs. One shared volume, because a
+    # template Enrolment encrypts has to be readable by Matching. In deployment this is a
+    # single KMS key and the volume disappears.
+    FirmlyPaid__Security__KeyFilePath: /keys/dev-keys.json
+    FirmlyPaid__Services__MatchingBaseUrl: "http://matching-api:8080"
+  volumes:
+    - devkeys:/keys
   depends_on:
     sqlserver:
       condition: service_healthy
@@ -128,3 +138,6 @@ services:
 volumes:
   sqlserver-data:
   rabbitmq-data:
+  # Local development only: the key that protects biometric templates lives beside the
+  # data it protects, which is exactly what a hardware security module exists to avoid.
+  devkeys:

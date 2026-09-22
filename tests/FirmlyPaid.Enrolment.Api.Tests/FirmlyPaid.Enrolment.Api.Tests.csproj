@@ -12,10 +12,14 @@
     <PackageReference Include="xunit.runner.visualstudio" />
     <PackageReference Include="FluentAssertions" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
+    <PackageReference Include="Testcontainers.MsSql" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\FirmlyPaid.Enrolment.Api\FirmlyPaid.Enrolment.Api.csproj" />
+    <!-- The enrolment flow is only real if the Matching service is really running. -->
+    <ProjectReference Include="..\..\src\FirmlyPaid.Matching.Api\FirmlyPaid.Matching.Api.csproj" />
+    <ProjectReference Include="..\..\src\FirmlyPaid.Data.Vault\FirmlyPaid.Data.Vault.csproj" />
   </ItemGroup>
 
 </Project>

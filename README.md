@@ -49,9 +49,10 @@ configuration, so swapping in the real thing is a new adapter class plus a confi
 
 ## Build progress
 
-Part 11 of [CLAUDE.md](CLAUDE.md) lists twelve steps. Steps 1 to 3 are done: the solution
-skeleton and Docker Compose stack, both databases with migrations and a seed script, and
-all seven simulators. Service endpoints start at step 4.
+Part 11 of [CLAUDE.md](CLAUDE.md) lists twelve steps. Steps 1 to 4 are done: the solution
+skeleton and Docker Compose stack, both databases with migrations and a seed script, all
+seven simulators, and the Enrolment and Matching services with vault encryption,
+cancellable templates and bucketed matching. Account linking is next, at step 5.
 
 ## Security
 

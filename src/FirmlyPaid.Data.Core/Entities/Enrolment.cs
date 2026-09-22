@@ -29,6 +29,14 @@ public class Enrolment
     /// <summary>Allocated up front so vein samples can be stored before the customer exists.</summary>
     public Guid TemplateOwnerId { get; set; } = Guid.NewGuid();
 
+    /// <summary>
+    /// The consent wording the customer agreed to before anything biometric was captured
+    /// (FR-02). Copied onto the Consent row once the customer exists.
+    /// </summary>
+    public required string ConsentTextVersion { get; set; }
+
+    public DateTime ConsentAcceptedAt { get; set; }
+
     public HomeAffairsOutcome HomeAffairsResult { get; set; }
 
     public required string HomeAffairsReference { get; set; }

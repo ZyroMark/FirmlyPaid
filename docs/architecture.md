@@ -1,6 +1,6 @@
 # FirmlyPaid architecture
 
-Owner: ZYROMARK PTY LTD. Updated at the end of step 3 (part 11).
+Owner: ZYROMARK PTY LTD. Updated at the end of step 4 (part 11).
 
 ## 1. The shape of the system
 
@@ -261,16 +261,85 @@ the Home Affairs roster. Both the database seeder and the Home Affairs simulator
 it, so the twenty test ID numbers cannot drift apart from the ten customers in the
 database. Neither the persistence layer nor the adapter layer depends on the other.
 
-## 9. What is not built yet
+## 9. How a template is stored and matched
 
+This is the part of the system with the strictest rules, so it is worth setting out in full.
 
+**Storing.** The scanner adapter is the only place a raw reading exists. It encrypts the
+reading before returning it, so the Enrolment service receives ciphertext it cannot read
+and forwards it to the Matching service over HTTP. Matching decrypts the sample, applies
+the customer's transform, encrypts the result with the current key version and writes that
+to `FirmlyPaidVault`. The row carries no name, no ID number and no customer id: only a
+random `TemplateOwnerId`, the finger position, the quality score and the transform seed.
 
-Steps 4 to 12 of part 11: all service endpoints, terminal and enrolment apps, the web
-front ends, and mutual TLS between terminals and the Gateway. Inside the
-compose network the services currently speak plain HTTP; TLS terminates at the Gateway
-from step 7.
+**The transform (rule 10.3).** A stored template is never the reading itself. It is the
+reading shuffled by a permutation derived from the customer's `TransformSeedId`. If a
+template ever leaks, the seed is revoked, the customer re-enrols under a new seed, and the
+leaked copy matches nothing. `CancellableTemplateTransform` is the whole of it, and it is
+the only class that changes when a vendor's own non-invertible transform arrives.
 
-Two columns are still left empty by the seed: `Customers.PinHash` waits for the Argon2id
-hasher in step 4, and `LinkedAccounts.AccountTokenCiphertext` waits for the AccountLink
-service in step 5 to run a real confirmation through the fake bank. The vault is also still
-empty, because templates are written during enrolment, which is step 4.
+A seeded permutation is used because it preserves exactly the distance the matching engine
+measures, so the configured threshold means the same thing transformed or not. The seed is
+stored beside the template on purpose: it is a revocation handle, not a second secret.
+What keeps a stolen template unreadable is the encryption; what makes a leak survivable is
+being able to issue a new seed.
+
+**Matching (FR-07).** A probe arrives with the four ID digits the customer typed. Matching
+reads the `Buckets` table for the owners who share those digits, loads only their live
+templates, and shuffles the probe once per candidate with that candidate's seed before
+comparing. The response carries `CandidatesSearched` so a caller, a test or an auditor can
+see that the search stayed inside one bucket. The bucket value itself is never logged
+(rule 10.5).
+
+**Revocation and deletion.** `POST /templates/{id}/revoke` retires every live template for
+a person, leaving the rows in place so the revocation is on record. `DELETE /templates/{id}`
+removes them outright, along with the bucket entry, which is what a customer asking for
+their biometrics to be deleted gets (rule 10.12 and FR-12).
+
+## 10. The enrolment sequence
+
+```
+  Agent app            Enrolment.Api                Matching.Api        Home Affairs
+      |                      |                            |                   |
+      |  POST /enrolments    |                            |                   |
+      |--------------------->| checksum, consent, duplicate check             |
+      |                      |------------------ verify ---------------------->|
+      |                      |<----------------- outcome ----------------------|
+      |<--- EnrolmentId -----| writes the Enrolment row and an audit row       |
+      |                      |                            |                   |
+      |  POST vein-samples   |  (three samples, one finger, already encrypted) |
+      |--------------------->| quality gate               |                   |
+      |                      |--- POST /templates ------->| transform, encrypt, store
+      |<--- FingersCaptured -|<--- FingersHeld -----------|                   |
+      |                      |                            |                   |
+      |  (repeat for the second finger)                   |                   |
+      |                      |                            |                   |
+      |  POST complete       |  (PIN, encrypted at the kiosk)                  |
+      |--------------------->| Argon2id hash, Customer + Consent rows          |
+      |<--- CustomerId ------|                            |                   |
+```
+
+The `Enrolment` row exists separately from the `Customer` row so that a half-finished
+sign-up never looks like a live customer. Both carry the same `TemplateOwnerId`, allocated
+at the first step, which is why vein samples can be stored before the customer exists.
+
+A refused Home Affairs check still writes its `Enrolment` row and its audit row before the
+error is returned. A refusal is exactly the kind of thing an auditor asks about later.
+
+**Audit details carry no identifiers.** Identifiers belong in `EntityType` and `EntityId`.
+The audit writer refuses any detail text that looks like an ID number, an account number or
+a labelled secret (rule 10.5), and a GUID printed in prose can trip that check on a run of
+digits. Keeping identifiers out of the prose is not a style preference: it stops a
+legitimate enrolment from being refused at the audit write.
+
+## 11. What is not built yet
+
+Steps 5 to 12 of part 11: the AccountLink, Payments, Risk and till endpoints, the Gateway's
+auth and rate limits, the terminal and enrolment apps, the web front ends, and mutual TLS
+between terminals and the Gateway. Inside the compose network the services currently speak
+plain HTTP; TLS terminates at the Gateway from step 7.
+
+One column is still left empty by the seed: `LinkedAccounts.AccountTokenCiphertext` waits
+for the AccountLink service in step 5 to run a real confirmation through the fake bank.
+`Customers.PinHash` is now filled with the demo PIN, and the vault fills up as customers
+are enrolled through the Enrolment API.

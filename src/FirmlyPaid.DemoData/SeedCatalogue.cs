@@ -49,6 +49,15 @@ public static class SeedCatalogue
     /// <summary>The agent whose id appears on every seeded consent and enrolment.</summary>
     public static readonly Guid DemoAgentId = Id("00000000a9e7");
 
+    /// <summary>
+    /// The PIN every seeded customer is given, so a demonstration never stalls on a
+    /// forgotten number. Seed data only: a real customer chooses their own at enrolment.
+    /// </summary>
+    public const string DemoPin = "1234";
+
+    /// <summary>The consent wording the seeded customers agreed to.</summary>
+    public const string DemoConsentTextVersion = "POPIA-2026-09-v1";
+
     public static readonly IReadOnlyList<SeedMerchant> Merchants =
     [
         new(

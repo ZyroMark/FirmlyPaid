@@ -2,6 +2,7 @@ using FirmlyPaid.Data.Core;
 using FirmlyPaid.Data.Core.Seeding;
 using FirmlyPaid.Data.Vault;
 using FirmlyPaid.DbTool;
+using FirmlyPaid.DemoData;
 using FirmlyPaid.Shared.Abstractions;
 using FirmlyPaid.Shared.Security;
 using Microsoft.EntityFrameworkCore;
@@ -48,7 +49,7 @@ async Task<int> MigrateAsync()
 async Task<int> SeedAsync()
 {
     await using var core = CreateCore();
-    var seeder = new CoreSeeder(core, CreateIdentityHasher(), new SystemClock());
+    var seeder = new CoreSeeder(core, CreateIdentityHasher(), new Argon2idPinHasher(), new SystemClock());
 
     var result = await seeder.SeedAsync();
 
@@ -66,8 +67,9 @@ async Task<int> SeedAsync()
     Console.WriteLine($"  customers       {result.Customers}");
     Console.WriteLine($"  linked accounts {result.LinkedAccounts}");
     Console.WriteLine();
-    Console.WriteLine("Still to come: customer PINs are filled in at step 4, and encrypted bank");
-    Console.WriteLine("account tokens plus vault templates at steps 3 to 5, once the simulators exist.");
+    Console.WriteLine($"Every seeded customer has the demo PIN {SeedCatalogue.DemoPin}.");
+    Console.WriteLine("Still to come: encrypted bank account tokens at step 5. Vein templates are");
+    Console.WriteLine("written to the vault by enrolling a customer through the Enrolment API.");
 
     return 0;
 }
@@ -85,7 +87,7 @@ async Task<int> ResetAsync()
     }
 
     await using var core = CreateCore();
-    await new CoreSeeder(core, CreateIdentityHasher(), new SystemClock()).ClearAsync();
+    await new CoreSeeder(core, CreateIdentityHasher(), new Argon2idPinHasher(), new SystemClock()).ClearAsync();
     Console.WriteLine("  FirmlyPaidCore emptied.");
 
     await using var vault = CreateVault();

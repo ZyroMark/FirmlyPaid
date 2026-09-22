@@ -5,6 +5,9 @@ WORKDIR /source
 
 COPY global.json Directory.Build.props Directory.Packages.props ./
 COPY src/FirmlyPaid.Shared/ src/FirmlyPaid.Shared/
+COPY src/FirmlyPaid.DemoData/ src/FirmlyPaid.DemoData/
+COPY src/FirmlyPaid.Data.Vault/ src/FirmlyPaid.Data.Vault/
+COPY src/FirmlyPaid.Simulators/ src/FirmlyPaid.Simulators/
 COPY src/FirmlyPaid.Matching.Api/ src/FirmlyPaid.Matching.Api/
 
 RUN dotnet publish src/FirmlyPaid.Matching.Api/FirmlyPaid.Matching.Api.csproj -c Release -o /app

@@ -8,6 +8,380 @@
     },
     "version": "v1"
   },
-  "paths": { },
-  "components": { }
+  "paths": {
+    "/match": {
+      "post": {
+        "tags": [
+          "Matching (internal)"
+        ],
+        "summary": "Finds the customer a finger belongs to, within one ID digit bucket.",
+        "description": "Internal service to service only. Unknown callers are refused with UNAUTHORIZED from step 7.",
+        "operationId": "Match",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MatchRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MatchResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/templates": {
+      "post": {
+        "tags": [
+          "Matching (internal)"
+        ],
+        "summary": "Stores one finger's encrypted samples under the customer's transform.",
+        "description": "Internal service to service only. Unknown callers are refused with UNAUTHORIZED from step 7.",
+        "operationId": "StoreTemplates",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StoreTemplatesRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoreTemplatesResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/templates/{templateOwnerId}": {
+      "get": {
+        "tags": [
+          "Matching (internal)"
+        ],
+        "summary": "Counts what the vault holds for one owner. Returns no template bytes.",
+        "description": "Internal service to service only. Unknown callers are refused with UNAUTHORIZED from step 7.",
+        "operationId": "GetTemplateSummary",
+        "parameters": [
+          {
+            "name": "templateOwnerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TemplateSummaryResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Matching (internal)"
+        ],
+        "summary": "Deletes every template for one owner. The customer must re-enrol.",
+        "description": "Internal service to service only. Unknown callers are refused with UNAUTHORIZED from step 7.",
+        "operationId": "DeleteTemplates",
+        "parameters": [
+          {
+            "name": "templateOwnerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeleteTemplatesResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/templates/{templateOwnerId}/revoke": {
+      "post": {
+        "tags": [
+          "Matching (internal)"
+        ],
+        "summary": "Retires every live template for one owner so a leaked copy is worthless.",
+        "description": "Internal service to service only. Unknown callers are refused with UNAUTHORIZED from step 7.",
+        "operationId": "RevokeTemplates",
+        "parameters": [
+          {
+            "name": "templateOwnerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RevokeTemplatesResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "DeleteTemplatesResponse": {
+        "type": "object",
+        "properties": {
+          "templatesDeleted": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "EncryptedPayloadDto": {
+        "type": "object",
+        "properties": {
+          "ciphertextBase64": {
+            "type": "string",
+            "nullable": true
+          },
+          "keyVersion": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "FingerPosition": {
+        "enum": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ],
+        "type": "integer",
+        "format": "int32"
+      },
+      "MatchRequest": {
+        "type": "object",
+        "properties": {
+          "probe": {
+            "$ref": "#/components/schemas/EncryptedPayloadDto"
+          },
+          "digits7To10Bucket": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "MatchResponse": {
+        "type": "object",
+        "properties": {
+          "matched": {
+            "type": "boolean"
+          },
+          "templateOwnerId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "score": {
+            "type": "number",
+            "format": "double"
+          },
+          "candidatesSearched": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ProblemDetails": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "nullable": true
+          },
+          "title": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "detail": {
+            "type": "string",
+            "nullable": true
+          },
+          "instance": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": { }
+      },
+      "RevokeTemplatesResponse": {
+        "type": "object",
+        "properties": {
+          "templatesRevoked": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "StoreTemplatesRequest": {
+        "type": "object",
+        "properties": {
+          "templateOwnerId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "digits7To10Bucket": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "fingerPosition": {
+            "$ref": "#/components/schemas/FingerPosition"
+          },
+          "samples": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EncryptedPayloadDto"
+            },
+            "nullable": true
+          },
+          "qualityScores": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "StoreTemplatesResponse": {
+        "type": "object",
+        "properties": {
+          "accepted": {
+            "type": "boolean"
+          },
+          "averageQualityScore": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "fingersHeld": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "rejectionReason": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "TemplateSummaryResponse": {
+        "type": "object",
+        "properties": {
+          "templateOwnerId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "fingersHeld": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "liveTemplates": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "revokedTemplates": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "Matching (internal)"
+    }
+  ]
 }

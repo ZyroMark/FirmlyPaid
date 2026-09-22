@@ -14,6 +14,7 @@ namespace FirmlyPaid.Data.Core.Seeding;
 public sealed class CoreSeeder(
     FirmlyPaidCoreDbContext database,
     IIdentityHasher identityHasher,
+    IPinHasher pinHasher,
     IClock clock)
 {
     public sealed record SeedResult(
@@ -33,6 +34,11 @@ public sealed class CoreSeeder(
         }
 
         var now = clock.UtcNow;
+
+        // Hashed once and reused: Argon2id is slow on purpose, and every seeded customer
+        // shares the same demo PIN anyway.
+        var demoPinHash = pinHasher.Hash(SeedCatalogue.DemoPin);
+
         var stores = 0;
         var terminals = 0;
 
@@ -96,6 +102,7 @@ public sealed class CoreSeeder(
                 IdNumberHash = identityHasher.HashIdNumber(idNumber),
                 IdDigits7to10Bucket = person.Bucket,
                 CellphoneNumber = person.CellphoneNumber,
+                PinHash = demoPinHash,
                 Status = person.Status,
                 Tier = CustomerTier.Pilot,
                 FrozenAt = person.Status == CustomerStatus.Frozen ? now : null,
@@ -107,7 +114,7 @@ public sealed class CoreSeeder(
             database.Consents.Add(new Consent
             {
                 CustomerId = customer.CustomerId,
-                ConsentTextVersion = "POPIA-2026-09-v1",
+                ConsentTextVersion = SeedCatalogue.DemoConsentTextVersion,
                 AgentId = SeedCatalogue.DemoAgentId,
                 AcceptedAt = now,
             });
@@ -122,6 +129,8 @@ public sealed class CoreSeeder(
                 IdDigits7to10Bucket = customer.IdDigits7to10Bucket,
                 CellphoneNumber = person.CellphoneNumber,
                 TemplateOwnerId = customer.TemplateOwnerId,
+                ConsentTextVersion = SeedCatalogue.DemoConsentTextVersion,
+                ConsentAcceptedAt = now,
                 HomeAffairsResult = HomeAffairsOutcome.Match,
                 HomeAffairsReference = $"HA-SEED-{customers:D3}",
                 Status = EnrolmentStatus.Completed,

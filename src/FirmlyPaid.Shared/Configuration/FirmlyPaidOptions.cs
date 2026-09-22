@@ -35,6 +35,14 @@ public sealed class FirmlyPaidOptions
     [Required]
     [ValidateObjectMembers]
     public AdapterOptions Adapters { get; init; } = new();
+
+    [Required]
+    [ValidateObjectMembers]
+    public ServiceEndpointOptions Services { get; init; } = new();
+
+    [Required]
+    [ValidateObjectMembers]
+    public SecurityOptions Security { get; init; } = new();
 }
 
 public sealed class EnrolmentOptions
@@ -139,6 +147,35 @@ public sealed class AdapterOptions
     [Required] public string BankGateway { get; init; } = AdapterNames.Simulator;
     [Required] public string KeyVault { get; init; } = AdapterNames.LocalDevFile;
     [Required] public string SmsSender { get; init; } = AdapterNames.Simulator;
+}
+
+/// <summary>
+/// Where the internal services live. Only Matching is called service to service today;
+/// the rest reach each other through the Gateway from step 7.
+/// </summary>
+public sealed class ServiceEndpointOptions
+{
+    [Required]
+    [Url]
+    public string MatchingBaseUrl { get; init; } = "http://localhost:5102";
+}
+
+/// <summary>
+/// Local key material settings. Nothing here is itself a secret: the pepper and the real
+/// keys come from the environment or KMS (rule 10.15).
+/// </summary>
+public sealed class SecurityOptions
+{
+    /// <summary>
+    /// Where the development key file lives. Ignored once the KeyVault adapter is AwsKms.
+    /// Defaults to the user's profile, deliberately outside the repository.
+    /// </summary>
+    [Required]
+    public string KeyFilePath { get; init; } =
+        Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+            ".firmlypaid",
+            "dev-keys.json");
 }
 
 public static class AdapterNames

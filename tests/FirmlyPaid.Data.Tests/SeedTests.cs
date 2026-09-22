@@ -19,6 +19,8 @@ public class SeedTests(SqlServerFixture fixture)
     private static readonly IIdentityHasher Hasher =
         new HmacIdentityHasher("a-test-pepper-that-is-long-enough-to-pass");
 
+    private static readonly IPinHasher PinHasher = new Argon2idPinHasher();
+
     private sealed class FixedClock : IClock
     {
         public DateTime UtcNow { get; } = new(2026, 9, 21, 9, 0, 0, DateTimeKind.Utc);
@@ -29,7 +31,7 @@ public class SeedTests(SqlServerFixture fixture)
     {
         await using var database = await fixture.CreateCoreAsync();
 
-        var result = await new CoreSeeder(database, Hasher, new FixedClock()).SeedAsync();
+        var result = await new CoreSeeder(database, Hasher, PinHasher, new FixedClock()).SeedAsync();
 
         result.AlreadySeeded.Should().BeFalse();
         result.Merchants.Should().Be(3);
@@ -45,7 +47,7 @@ public class SeedTests(SqlServerFixture fixture)
     public async Task Seed_GivesSomeCustomersOneBankAndOthersThree()
     {
         await using var database = await fixture.CreateCoreAsync();
-        await new CoreSeeder(database, Hasher, new FixedClock()).SeedAsync();
+        await new CoreSeeder(database, Hasher, PinHasher, new FixedClock()).SeedAsync();
 
         var accountCounts = await database.LinkedAccounts
             .GroupBy(a => a.CustomerId)
@@ -62,7 +64,7 @@ public class SeedTests(SqlServerFixture fixture)
     {
         // Matching must still pick the right person when a bucket holds more than one.
         await using var database = await fixture.CreateCoreAsync();
-        await new CoreSeeder(database, Hasher, new FixedClock()).SeedAsync();
+        await new CoreSeeder(database, Hasher, PinHasher, new FixedClock()).SeedAsync();
 
         var crowdedBuckets = await database.Customers
             .GroupBy(c => c.IdDigits7to10Bucket)
@@ -77,7 +79,7 @@ public class SeedTests(SqlServerFixture fixture)
     public async Task Seed_StoresNoIdNumberInTheClear()
     {
         await using var database = await fixture.CreateCoreAsync();
-        await new CoreSeeder(database, Hasher, new FixedClock()).SeedAsync();
+        await new CoreSeeder(database, Hasher, PinHasher, new FixedClock()).SeedAsync();
 
         var hashes = await database.Customers.Select(c => c.IdNumberHash).ToListAsync();
 
@@ -92,7 +94,7 @@ public class SeedTests(SqlServerFixture fixture)
     public async Task Seed_MarksOneCustomerFrozenAndSomeWithADefaultBank()
     {
         await using var database = await fixture.CreateCoreAsync();
-        await new CoreSeeder(database, Hasher, new FixedClock()).SeedAsync();
+        await new CoreSeeder(database, Hasher, PinHasher, new FixedClock()).SeedAsync();
 
         (await database.Customers.CountAsync(c => c.Status == CustomerStatus.Frozen))
             .Should().BeGreaterThan(0, "the portal freeze flow needs someone to demonstrate on");
@@ -108,7 +110,7 @@ public class SeedTests(SqlServerFixture fixture)
     public async Task Seed_CanBeRunTwiceWithoutDuplicating()
     {
         await using var database = await fixture.CreateCoreAsync();
-        var seeder = new CoreSeeder(database, Hasher, new FixedClock());
+        var seeder = new CoreSeeder(database, Hasher, PinHasher, new FixedClock());
 
         await seeder.SeedAsync();
         var second = await seeder.SeedAsync();
@@ -121,7 +123,7 @@ public class SeedTests(SqlServerFixture fixture)
     public async Task Seed_WritesAnAuditRowThatVerifies()
     {
         await using var database = await fixture.CreateCoreAsync();
-        await new CoreSeeder(database, Hasher, new FixedClock()).SeedAsync();
+        await new CoreSeeder(database, Hasher, PinHasher, new FixedClock()).SeedAsync();
 
         var result = await new FirmlyPaid.Data.Core.AuditChainVerifier(database).VerifyAsync();
 
@@ -133,7 +135,7 @@ public class SeedTests(SqlServerFixture fixture)
     public async Task Clear_EmptiesEverySeededTable()
     {
         await using var database = await fixture.CreateCoreAsync();
-        var seeder = new CoreSeeder(database, Hasher, new FixedClock());
+        var seeder = new CoreSeeder(database, Hasher, PinHasher, new FixedClock());
         await seeder.SeedAsync();
 
         await seeder.ClearAsync();

@@ -12,10 +12,12 @@
     <PackageReference Include="xunit.runner.visualstudio" />
     <PackageReference Include="FluentAssertions" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
+    <PackageReference Include="Testcontainers.MsSql" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\FirmlyPaid.Matching.Api\FirmlyPaid.Matching.Api.csproj" />
+    <ProjectReference Include="..\..\src\FirmlyPaid.DemoData\FirmlyPaid.DemoData.csproj" />
   </ItemGroup>
 
 </Project>

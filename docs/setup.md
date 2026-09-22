@@ -79,6 +79,10 @@ This creates `FirmlyPaidCore` and `FirmlyPaidVault` from the EF Core migrations,
 the demo data: 3 merchants, 4 stores, 5 terminals, 10 customers and 19 linked accounts.
 Running it again is safe, because seeding skips if the demo data is already there.
 
+Every seeded customer is given the demo PIN `1234`, so a demonstration never stalls on a
+forgotten number. If your database was seeded before step 4 those customers have no PIN
+yet: run `.\scripts\db-setup.ps1 -Command reset` to rebuild them.
+
 Other commands:
 
 ```powershell
@@ -137,14 +141,37 @@ Supporting services:
 | SQL Server | `localhost,14330` | user `sa`, password from your `.env` |
 | RabbitMQ management | http://localhost:15672 | user and password from your `.env` |
 
-## 9. Stop the stack
+## 9. Enrol a customer
+
+The Enrolment and Matching services are live from step 4. The three calls are documented
+at http://localhost:5101/swagger, and they run in this order:
+
+1. `POST /enrolments` with the ID number, name, cellphone, agent id, store id, consent
+   version and a fingerprint sample. The reply carries the `EnrolmentId` and what Home
+   Affairs said.
+2. `POST /enrolments/{id}/vein-samples`, twice: three encrypted samples of one finger each
+   time, for two different fingers. A poor read comes back with `accepted: false` and a
+   retry message rather than an error.
+3. `POST /enrolments/{id}/complete` with the encrypted PIN. The reply is the new
+   `CustomerId`.
+
+The samples have to be encrypted with the same key the services hold, so the easiest way
+to run the whole flow by hand is from the enrolment app, which arrives in step 8. Until
+then, the flow is exercised end to end by the tests in
+`tests\FirmlyPaid.Enrolment.Api.Tests`, which run both services against a real database.
+
+The twenty test identities the Home Affairs simulator answers for are in
+`src\FirmlyPaid.DemoData\HomeAffairsRoster.cs`: twelve that match, three that do not, two
+marked deceased and three where the service is down.
+
+## 10. Stop the stack
 
 ```powershell
 .\scripts\dev-down.ps1          # stop, keep the data
 .\scripts\dev-down.ps1 -Clean   # stop and wipe the local databases and queues
 ```
 
-## 10. Refresh the API documents
+## 11. Refresh the API documents
 
 With the stack up:
 
@@ -173,6 +200,8 @@ container running.
 | `docker compose` says the daemon is not running | Start Docker Desktop and wait for the whale icon to stop animating. |
 | SQL Server container keeps restarting | Your `MSSQL_SA_PASSWORD` is too weak. Change it in `.env`, then `.\scripts\dev-down.ps1 -Clean` and start again. |
 | A service shows `DOWN` | `docker compose logs <service>` - for example `docker compose logs payments-api`. |
+| Enrolment or Matching will not start | They need more than a connection string from step 4. Enrolment wants `FIRMLYPAID_ID_PEPPER` and Matching wants `ConnectionStrings__Vault`; both want `FirmlyPaid__Security__KeyFilePath`. Compose sets all of these from your `.env`. |
+| Matching answers `INTERNAL_ERROR` on every match | The two services are not sharing a key file, so Matching cannot decrypt what Enrolment sent. In compose they share the `devkeys` volume; outside it, point both at the same `FirmlyPaid__Security__KeyFilePath`. |
 | Port already in use | Something else holds 5100-5106, 14330, 5672 or 15672. Stop it, or change the left-hand port in `docker-compose.yml`. |
 | The databases are not in SQL Server Management Studio | You are probably looking at a SQL Server installed on Windows. The FirmlyPaid databases are in the container: connect to `localhost,14330` as `sa`. |
 | `Login failed for user 'sa'` | Your `.env` password no longer matches the container. Run `.\scripts\dev-down.ps1 -Clean`, then start again so the container is created with the current password. |
