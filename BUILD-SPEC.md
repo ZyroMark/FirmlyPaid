@@ -2,7 +2,7 @@
 
 Owner: ZYROMARK PTY LTD. Version 1.0, 21 September 2026.
 
-Paste everything below into any AI coding tool (for example Claude Code) or hand it to a developer. It builds the full FirmlyPaid software with the hardware, bank and Home Affairs replaced by simulators until they arrive. Tip: save this file in the empty project folder as `CLAUDE.md` so Claude Code reads it on every session.
+Paste everything below into any AI coding tool or hand it to a developer. It builds the full FirmlyPaid software with the hardware, bank and Home Affairs replaced by simulators until they arrive. Tip: keep this file in the project root as `BUILD-SPEC.md` so it is read at the start of every session.
 
 ---
 

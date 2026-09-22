@@ -10,6 +10,6 @@ var app = builder.Build();
 
 app.UseFirmlyPaidDefaults();
 
-// Endpoints for this service arrive in a later build step (see CLAUDE.md part 11).
+// Endpoints for this service arrive in a later build step (see BUILD-SPEC.md part 11).
 
 app.Run();

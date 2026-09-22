@@ -18,7 +18,7 @@ system runs end to end on a developer laptop.
 | Set it up on a clean Windows laptop | [docs/setup.md](docs/setup.md) |
 | Understand how it fits together | [docs/architecture.md](docs/architecture.md) |
 | See the API contracts | [docs/api](docs/api) |
-| Know what is being built and in what order | [CLAUDE.md](CLAUDE.md) |
+| Know what is being built and in what order | [BUILD-SPEC.md](BUILD-SPEC.md) |
 
 ## Quick start
 
@@ -49,14 +49,14 @@ configuration, so swapping in the real thing is a new adapter class plus a confi
 
 ## Build progress
 
-Part 11 of [CLAUDE.md](CLAUDE.md) lists twelve steps. Steps 1 to 4 are done: the solution
+Part 11 of [BUILD-SPEC.md](BUILD-SPEC.md) lists twelve steps. Steps 1 to 4 are done: the solution
 skeleton and Docker Compose stack, both databases with migrations and a seed script, all
 seven simulators, and the Enrolment and Matching services with vault encryption,
 cancellable templates and bucketed matching. Account linking is next, at step 5.
 
 ## Security
 
-The rules in part 10 of [CLAUDE.md](CLAUDE.md) are not negotiable, and several of them are
+The rules in part 10 of [BUILD-SPEC.md](BUILD-SPEC.md) are not negotiable, and several of them are
 enforced by tests rather than by convention. No raw biometric image is ever stored, logged
 or sent. Templates are encrypted and live in a separate database that only the Matching
 service can reach. No ID number, PIN, template, account number or token may reach a log.
